@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     db_url: str
+    db_url_test: str
 
     jwt_secret: str
     jwt_algorithm: str = 'HS256'

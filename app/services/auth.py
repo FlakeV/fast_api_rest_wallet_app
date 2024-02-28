@@ -30,26 +30,23 @@ class AuthService:
 
     @classmethod
     async def verify_token(cls, token: str) -> User:
+        exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         try:
             payload = jwt.decode(
                 token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
             )
         except JWTError:
-            return HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise exception from None
 
         user_data = payload.get("user")
         try:
             user = User.parse_obj(user_data)
         except TypeError:
-            return HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise exception from None
         return user
 
     @classmethod

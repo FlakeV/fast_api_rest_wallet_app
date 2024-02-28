@@ -7,13 +7,13 @@ from ..services.auth import AuthService, get_current_user
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/sign-in", response_model=Token, description="Register new user")
-async def sign_in(user_data: UserAdd, auth_service: AuthService = Depends()):
+@router.post("/sign-up", response_model=Token, description="Register new user")
+async def sign_up(user_data: UserAdd, auth_service: AuthService = Depends()):
     return await auth_service.register_user(user_data)
 
 
-@router.post("/sign-up", response_model=Token, description="Login user")
-async def sign_up(
+@router.post("/sign-in", response_model=Token, description="Login user")
+async def sign_in(
     from_data: OAuth2PasswordRequestForm = Depends(),
     auth_service: AuthService = Depends(),
 ):
