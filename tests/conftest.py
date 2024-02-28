@@ -3,9 +3,9 @@ from typing import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import create_engine, NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from main import app
 from configuration.settings import settings
@@ -31,7 +31,6 @@ app.dependency_overrides[get_session] = override_get_session
 @pytest.fixture(autouse=True, scope="session")
 async def prepare_database():
     async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with engine_test.begin() as conn:
@@ -47,6 +46,6 @@ def event_loop(request):
 
 
 @pytest.fixture(scope="session")
-async def async_client():
+async def ac():
     async with AsyncClient(app=app, base_url="http://testserver") as ac:
         yield ac

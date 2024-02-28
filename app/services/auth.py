@@ -1,10 +1,12 @@
 from datetime import datetime
 
+from asyncpg import UniqueViolationError
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.hash import bcrypt
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from ..configuration.settings import settings
 from ..database.db import get_session
@@ -75,10 +77,15 @@ class AuthService:
             password_hash=await self.get_password_hash(user.password),
             phone=user.phone,
         )
-        self.session.add(new_user)
-        await self.session.commit()
-        await self.session.refresh(new_user)
-        return await self.create_token(new_user)
+        try:
+            self.session.add(new_user)
+            await self.session.commit()
+            await self.session.refresh(new_user)
+            return await self.create_token(new_user)
+        except IntegrityError:
+            raise HTTPException(
+                status_code=400, detail=f"User with {user.email} email already exists"
+            )
 
     async def authenticate_user(self, username: str, password: str) -> Token:
         exception = HTTPException(
